@@ -1,3 +1,3 @@
 .PHONY: run 
 run:
-	go run cmd/genpass/main.go
+	go run cmd/password-generator/main.go
