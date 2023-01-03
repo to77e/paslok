@@ -1,1 +1,1 @@
-# go-password-generator
+# password-generator
