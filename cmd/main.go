@@ -3,12 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/to77e/password-generator/internal/app"
 	"log"
 	"os"
 	"strings"
 	"time"
-
-	"github.com/to77e/go-password-generator/internal/app/generator"
 )
 
 const (
@@ -21,7 +20,7 @@ const (
 
 func main() {
 
-	password, err := generator.CreatePassword(length)
+	password, err := app.CreatePassword(length)
 	if err != nil {
 		log.Fatalf("failed to create password: %v\n", err)
 	}

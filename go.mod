@@ -1,3 +1,3 @@
-module github.com/to77e/go-password-generator
+module github.com/to77e/password-generator
 
-go 1.17
+go 1.19
