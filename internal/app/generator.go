@@ -35,8 +35,10 @@ var (
 // CreatePassword generates password with a given length
 func CreatePassword(length int) (string, error) {
 	var (
-		err      error
-		password strings.Builder
+		err         error
+		b           []byte
+		chosenBytes = make([]byte, 0, length)
+		password    string
 	)
 
 	if length <= minLength {
@@ -48,43 +50,44 @@ func CreatePassword(length int) (string, error) {
 	lengthNumberChars := length * partNumberChars / 100
 	lengthLowerCharset := length - lengthUpperChars - lengthSpecialChars - lengthNumberChars
 
-	if err = chooseCharsFromCharset(lengthLowerCharset, lowerCharset, &password); err != nil {
+	if b, err = chooseCharsFromCharset(lengthLowerCharset, lowerCharset); err != nil {
+		return "", err
+	}
+	chosenBytes = append(chosenBytes, b...)
+	if b, err = chooseCharsFromCharset(lengthUpperChars, upperCharset); err != nil {
+		return "", err
+	}
+	chosenBytes = append(chosenBytes, b...)
+	if b, err = chooseCharsFromCharset(lengthSpecialChars, specialCharset); err != nil {
+		return "", err
+	}
+	chosenBytes = append(chosenBytes, b...)
+	if b, err = chooseCharsFromCharset(lengthNumberChars, numberSet); err != nil {
+		return "", err
+	}
+	chosenBytes = append(chosenBytes, b...)
+	shuffleBytes(chosenBytes)
+
+	if password, err = chunkString(length, chosenBytes); err != nil {
 		return "", err
 	}
 
-	if err = chooseCharsFromCharset(lengthUpperChars, upperCharset, &password); err != nil {
-		return "", err
-	}
-
-	if err = chooseCharsFromCharset(lengthSpecialChars, specialCharset, &password); err != nil {
-		return "", err
-	}
-
-	if err = chooseCharsFromCharset(lengthNumberChars, numberSet, &password); err != nil {
-		return "", err
-	}
-
-	if password, err = shuffleString([]byte(password.String())); err != nil {
-		return "", err
-	}
-
-	password, err = chunkString(length, password)
-	if err != nil {
-		return "", err
-	}
-
-	return password.String(), nil
+	return password, nil
 }
 
-func chooseCharsFromCharset(length int, chars Charset, password *strings.Builder) error {
+func chooseCharsFromCharset(length int, chars Charset) ([]byte, error) {
+	var (
+		b   byte
+		res = make([]byte, 0, length)
+		err error
+	)
 	for i := 0; i < length; i++ {
-		b, err := randomlyChooseChar(chars)
-		if err != nil {
-			return err
+		if b, err = randomlyChooseChar(chars); err != nil {
+			return nil, err
 		}
-		password.WriteByte(b)
+		res = append(res, b)
 	}
-	return nil
+	return res, nil
 }
 
 func randomlyChooseChar(chars Charset) (byte, error) {
@@ -95,43 +98,34 @@ func randomlyChooseChar(chars Charset) (byte, error) {
 	return chars[byte(r.Int64())], nil
 }
 
-func shuffleString(in []byte) (strings.Builder, error) {
-	var (
-		err error
-		out strings.Builder
-	)
+func shuffleBytes(in []byte) {
 	s := mathRand.NewSource(time.Now().UnixNano())
 	r := mathRand.New(s)
 
 	r.Shuffle(len(in), func(i, j int) {
 		in[i], in[j] = in[j], in[i]
 	})
-
-	if _, err = out.WriteString(string(in)); err != nil {
-		return out, err
-	}
-	return out, nil
 }
 
-func chunkString(lengthAll int, in strings.Builder) (strings.Builder, error) {
+func chunkString(lengthAll int, in []byte) (string, error) {
 	var (
 		err error
 		res strings.Builder
 	)
 
 	if lengthAll <= chunkSize {
-		return in, nil
+		return string(in), nil
 	}
 
-	for i, v := range in.String() {
+	for i, v := range in {
 		if i > 0 && (i)%chunkSize == 0 {
 			if err = res.WriteByte('-'); err != nil {
-				return res, err
+				return "", err
 			}
 		}
-		if err = res.WriteByte(byte(v)); err != nil {
-			return res, err
+		if err = res.WriteByte(v); err != nil {
+			return "", err
 		}
 	}
-	return res, nil
+	return res.String(), nil
 }
