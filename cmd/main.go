@@ -18,6 +18,10 @@ const (
 	layout = "2006-01-02"
 )
 
+// TODO: crypt output file
+// TODO: read file
+// TODO: list of actual passwords
+
 func main() {
 
 	password, err := app.CreatePassword(length)

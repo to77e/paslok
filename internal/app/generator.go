@@ -20,16 +20,15 @@ var (
 )
 
 var (
+	ErrTooShortLength = errors.New("too short length")
+)
+
+const (
 	partUpperChars   = 15
 	partSpecialChars = 15
 	partNumberChars  = 15
-
-	minLength = 12
-	chunkSize = 6
-)
-
-var (
-	ErrTooShortLength = errors.New("too short length")
+	minLength        = 12
+	chunkSize        = 6
 )
 
 // CreatePassword generates password with a given length
@@ -37,13 +36,14 @@ func CreatePassword(length int) (string, error) {
 	var (
 		err         error
 		b           []byte
-		chosenBytes = make([]byte, 0, length)
 		password    string
+		chosenBytes []byte
 	)
 
 	if length <= minLength {
 		return "", ErrTooShortLength
 	}
+	chosenBytes = make([]byte, 0, length)
 
 	lengthUpperChars := length * partUpperChars / 100
 	lengthSpecialChars := length * partSpecialChars / 100
@@ -68,7 +68,7 @@ func CreatePassword(length int) (string, error) {
 	chosenBytes = append(chosenBytes, b...)
 	shuffleBytes(chosenBytes)
 
-	if password, err = chunkString(length, chosenBytes); err != nil {
+	if password, err = chunkString(chosenBytes, length, chunkSize); err != nil {
 		return "", err
 	}
 
@@ -107,13 +107,13 @@ func shuffleBytes(in []byte) {
 	})
 }
 
-func chunkString(lengthAll int, in []byte) (string, error) {
+func chunkString(in []byte, length, chunkSize int) (string, error) {
 	var (
 		err error
 		res strings.Builder
 	)
 
-	if lengthAll <= chunkSize {
+	if length <= chunkSize {
 		return string(in), nil
 	}
 
