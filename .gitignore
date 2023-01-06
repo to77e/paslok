@@ -16,5 +16,6 @@
 
 .DS_Store
 .vscode
+.idea
 .env
 .pwd
