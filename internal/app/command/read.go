@@ -4,17 +4,19 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/atotto/clipboard"
+	"github.com/to77e/password-generator/tools/aes"
 	"os"
 	"strings"
 )
 
-func ReadName(name string) error {
+func ReadName(name, cipherKey string) error {
 	var (
-		tmp      string
-		values   []string
-		err      error
-		file     *os.File
-		password string
+		tmp        string
+		values     []string
+		err        error
+		file       *os.File
+		password   string
+		decryptStr string
 	)
 
 	if file, err = os.OpenFile(fileName, os.O_RDONLY, 0666); err != nil {
@@ -29,7 +31,10 @@ func ReadName(name string) error {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		tmp = scanner.Text()
-		values = strings.Split(tmp, ";")
+		if decryptStr, err = aes.Decrypt(tmp, cipherKey); err != nil {
+			return err
+		}
+		values = strings.Split(decryptStr, ";")
 		if values[0] == name {
 			password = values[1]
 		}
@@ -38,6 +43,10 @@ func ReadName(name string) error {
 	if err = scanner.Err(); err != nil {
 		return fmt.Errorf("failed to scan file: %v", err)
 	}
+	if len(password) == 0 {
+		return fmt.Errorf("name %v doesn't exist", name)
+	}
+
 	if err = clipboard.WriteAll(password); err != nil {
 		return fmt.Errorf("faild to clipboard password: %v", err)
 	}
