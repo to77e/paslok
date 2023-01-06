@@ -1,4 +1,4 @@
-package app
+package generator
 
 import (
 	"crypto/rand"
