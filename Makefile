@@ -8,7 +8,7 @@ test:
 
 .PHONY: create
 create:
-	go run cmd/main.go -c $(name) $(comment)
+	go run cmd/main.go -c $(name) $(comment) -r $(name)
 
 .PHONY: read
 read:
