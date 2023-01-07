@@ -15,7 +15,7 @@ Arguments:
 
 Example:
 ```shell
-go run cmd/mine.go -s newname newcomment -r
+go run cmd/mine.go -r -s newname newcomment
 ```
 
 Please note that this application has only been tested on Linux and has not been tested on other platforms. Use on other platforms is not supported at this time.
