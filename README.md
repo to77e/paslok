@@ -6,7 +6,7 @@ Before using please install xclip
 sudo apt install xclip
 ```
 
-First you need to create a ".env" file in which to declare a CIPHERKEY - AES 256 encryption key.
+First you need to create a ".env" file in which to declare a "CIPHERKEY" - AES 256 encryption key.
 
 Arguments:  
     -l - list all names and comments  
@@ -15,7 +15,7 @@ Arguments:
 
 Example:
 ```shell
-go rin cmd/mine.go -s nationalname newcomment -r
+go run cmd/mine.go -s newname newcomment -r
 ```
 
 Please note that this application has only been tested on Linux and has not been tested on other platforms. Use on other platforms is not supported at this time.
