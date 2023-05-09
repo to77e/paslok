@@ -6,7 +6,9 @@ Before using please install xclip
 sudo apt install xclip
 ```
 
-First you need to create a ".env" file in which to declare a "CIPHERKEY" - AES 256 encryption key.
+First you need to create a ".env" file in which to declare:   
+"CIPHERKEY" - AES 256 encryption key;   
+"FILEPATH" - path to the file where the passwords will be stored.   
 
 Arguments:  
     -l - list all names and comments  

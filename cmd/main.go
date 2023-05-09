@@ -25,23 +25,28 @@ func main() {
 
 	cipherKey, found := os.LookupEnv("CIPHERKEY")
 	if !found {
-		log.Fatalf("failed to load key")
+		log.Fatalf("load cipher key")
+	}
+
+	filePath, found := os.LookupEnv("FILEPATH")
+	if !found {
+		log.Fatalf("load file path")
 	}
 
 	if len(*create) > 0 {
-		if err := command.CreatePassword(cipherKey, *create, flag.Arg(0)); err != nil {
+		if err := command.CreatePassword(cipherKey, filePath, *create, flag.Arg(0)); err != nil {
 			log.Fatal(err)
 		}
 	}
 
 	if len(*read) > 0 {
-		if err := command.ReadName(*read, cipherKey); err != nil {
+		if err := command.ReadName(*read, cipherKey, filePath); err != nil {
 			log.Fatal(err)
 		}
 	}
 
 	if *list {
-		if err := command.ListNames(cipherKey); err != nil {
+		if err := command.ListNames(cipherKey, filePath); err != nil {
 			log.Fatal(err)
 		}
 	}

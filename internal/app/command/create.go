@@ -3,6 +3,7 @@ package command
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -11,11 +12,10 @@ import (
 )
 
 const (
-	fileName = ".pwd"
-	length   = 18
+	length = 18
 )
 
-func CreatePassword(cipherKey, name, comment string) error {
+func CreatePassword(cipherKey, filePath, name, comment string) error {
 	const (
 		perm = 0600
 	)
@@ -26,7 +26,13 @@ func CreatePassword(cipherKey, name, comment string) error {
 		file       *os.File
 	)
 
-	if file, err = os.OpenFile(fileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.FileMode(perm)); err != nil {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return fmt.Errorf("load user home directory: %v", err)
+	}
+	filePath = filepath.Join(homeDir, filepath.Clean(filePath))
+
+	if file, err = os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.FileMode(perm)); err != nil {
 		return fmt.Errorf("failed to open file: %v\n", err)
 	}
 	defer func() {

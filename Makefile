@@ -4,7 +4,7 @@ GOLANGCI_TAG:=1.51.2
 
 .PHONY: build
 build:
-	go build -o bot cmd/main.go
+	go build -o bin/pswrd cmd/main.go
 
 .PHONY: test
 test:

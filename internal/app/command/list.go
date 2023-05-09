@@ -4,12 +4,13 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/to77e/password-generator/tools/aes"
 )
 
-func ListNames(cipherKey string) error {
+func ListNames(cipherKey, filePath string) error {
 	const (
 		perm = 0600
 	)
@@ -21,7 +22,12 @@ func ListNames(cipherKey string) error {
 		file       *os.File
 	)
 
-	if file, err = os.OpenFile(fileName, os.O_RDONLY, os.FileMode(perm)); err != nil {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return fmt.Errorf("load user home directory: %v", err)
+	}
+	filePath = filepath.Join(homeDir, filepath.Clean(filePath))
+	if file, err = os.OpenFile(filePath, os.O_RDONLY, os.FileMode(perm)); err != nil {
 		return fmt.Errorf("open file: %v\n", err)
 	}
 	defer func() {
