@@ -3,13 +3,17 @@ package command
 import (
 	"bufio"
 	"fmt"
-	"github.com/atotto/clipboard"
-	"github.com/to77e/password-generator/tools/aes"
 	"os"
 	"strings"
+
+	"github.com/atotto/clipboard"
+	"github.com/to77e/password-generator/tools/aes"
 )
 
 func ReadName(name, cipherKey string) error {
+	const (
+		perm = 0600
+	)
 	var (
 		tmp        string
 		values     []string
@@ -19,7 +23,7 @@ func ReadName(name, cipherKey string) error {
 		decryptStr string
 	)
 
-	if file, err = os.OpenFile(fileName, os.O_RDONLY, 0666); err != nil {
+	if file, err = os.OpenFile(fileName, os.O_RDONLY, os.FileMode(perm)); err != nil {
 		return fmt.Errorf("failed to open file: %v\n", err)
 	}
 	defer func() {
@@ -32,7 +36,7 @@ func ReadName(name, cipherKey string) error {
 	for scanner.Scan() {
 		tmp = scanner.Text()
 		if decryptStr, err = aes.Decrypt(tmp, cipherKey); err != nil {
-			return err
+			return fmt.Errorf("decrypt: %w", err)
 		}
 		values = strings.Split(decryptStr, ";")
 		if values[0] == name {

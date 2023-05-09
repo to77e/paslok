@@ -2,11 +2,12 @@ package command
 
 import (
 	"fmt"
-	"github.com/to77e/password-generator/internal/app/generator"
-	"github.com/to77e/password-generator/tools/aes"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/to77e/password-generator/internal/app/generator"
+	"github.com/to77e/password-generator/tools/aes"
 )
 
 const (
@@ -15,6 +16,9 @@ const (
 )
 
 func CreatePassword(cipherKey, name, comment string) error {
+	const (
+		perm = 0600
+	)
 	var (
 		err        error
 		password   string
@@ -22,7 +26,7 @@ func CreatePassword(cipherKey, name, comment string) error {
 		file       *os.File
 	)
 
-	if file, err = os.OpenFile(fileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666); err != nil {
+	if file, err = os.OpenFile(fileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.FileMode(perm)); err != nil {
 		return fmt.Errorf("failed to open file: %v\n", err)
 	}
 	defer func() {
@@ -41,7 +45,7 @@ func CreatePassword(cipherKey, name, comment string) error {
 
 	tmp := fmt.Sprintf("%s;%s;%s;%s", name, password, comment, time.Now().Format(time.RFC3339))
 	if encryptStr, err = aes.Encrypt(tmp, cipherKey); err != nil {
-		return err
+		return fmt.Errorf("encrypt: %w", err)
 	}
 
 	if _, err = file.WriteString(encryptStr + "\n"); err != nil {

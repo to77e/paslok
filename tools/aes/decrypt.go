@@ -4,7 +4,6 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/hex"
-	"fmt"
 )
 
 // Decrypt -
@@ -42,5 +41,5 @@ func Decrypt(encryptedString, keyString string) (out string, err error) {
 		return
 	}
 
-	return fmt.Sprintf("%s", res), nil
+	return string(res), nil
 }

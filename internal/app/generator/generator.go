@@ -5,9 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
-	mathRand "math/rand"
 	"strings"
-	"time"
 )
 
 type Charset []byte
@@ -24,6 +22,7 @@ var (
 )
 
 const (
+	partAllChars     = 100
 	partUpperChars   = 15
 	partSpecialChars = 15
 	partNumberChars  = 15
@@ -45,9 +44,9 @@ func CreatePassword(length int) (string, error) {
 	}
 	chosenBytes = make([]byte, 0, length)
 
-	lengthUpperChars := length * partUpperChars / 100
-	lengthSpecialChars := length * partSpecialChars / 100
-	lengthNumberChars := length * partNumberChars / 100
+	lengthUpperChars := length * partUpperChars / partAllChars
+	lengthSpecialChars := length * partSpecialChars / partAllChars
+	lengthNumberChars := length * partNumberChars / partAllChars
 	lengthLowerCharset := length - lengthUpperChars - lengthSpecialChars - lengthNumberChars
 
 	if b, err = chooseCharsFromCharset(lengthLowerCharset, lowerCharset); err != nil {
@@ -66,7 +65,10 @@ func CreatePassword(length int) (string, error) {
 		return "", err
 	}
 	chosenBytes = append(chosenBytes, b...)
-	shuffleBytes(chosenBytes)
+	err = shuffleBytes(chosenBytes)
+	if err != nil {
+		return "", err
+	}
 
 	if password, err = chunkString(chosenBytes, length, chunkSize); err != nil {
 		return "", err
@@ -98,13 +100,16 @@ func randomlyChooseChar(chars Charset) (byte, error) {
 	return chars[byte(r.Int64())], nil
 }
 
-func shuffleBytes(in []byte) {
-	s := mathRand.NewSource(time.Now().UnixNano())
-	r := mathRand.New(s)
-
-	r.Shuffle(len(in), func(i, j int) {
-		in[i], in[j] = in[j], in[i]
-	})
+func shuffleBytes(in []byte) error {
+	for i := range in {
+		j, err := rand.Int(rand.Reader, big.NewInt(int64(len(in)-i)))
+		if err != nil {
+			return fmt.Errorf("choose %v from charset %v", j, in)
+		}
+		jInt := j.Int64()
+		in[i], in[i+int(jInt)] = in[i+int(jInt)], in[i]
+	}
+	return nil
 }
 
 func chunkString(in []byte, length, chunkSize int) (string, error) {
@@ -120,11 +125,11 @@ func chunkString(in []byte, length, chunkSize int) (string, error) {
 	for i, v := range in {
 		if i > 0 && (i)%chunkSize == 0 {
 			if err = res.WriteByte('-'); err != nil {
-				return "", err
+				return "", fmt.Errorf("write \"-\": %w", err)
 			}
 		}
 		if err = res.WriteByte(v); err != nil {
-			return "", err
+			return "", fmt.Errorf("write byte: %w", err)
 		}
 	}
 	return res.String(), nil

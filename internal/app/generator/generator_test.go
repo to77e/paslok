@@ -1,9 +1,10 @@
 package generator
 
 import (
-	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCreatePassword(t *testing.T) {
@@ -28,7 +29,6 @@ func TestCreatePassword(t *testing.T) {
 			assert.True(t, strings.ContainsAny(actual, string(upperCharset)))
 			assert.True(t, strings.ContainsAny(actual, string(specialCharset)))
 			assert.True(t, strings.ContainsAny(actual, string(numberSet)))
-
 		}
 	})
 
@@ -46,4 +46,53 @@ func TestCreatePassword(t *testing.T) {
 		}
 		assert.Len(t, result, length)
 	})
+}
+
+func Test_shuffleBytes(t *testing.T) {
+	type args struct {
+		in []byte
+	}
+	tests := []struct {
+		name string
+		args args
+		want []byte
+	}{
+		{
+			name: "empty slice",
+			args: args{
+				in: []byte{},
+			},
+			want: []byte{},
+		},
+		{
+			name: "single element slice",
+			args: args{
+				in: []byte{1},
+			},
+			want: []byte{1},
+		},
+		{
+			name: "multiple element slice",
+			args: args{in: []byte{1, 2, 3, 4, 5}},
+			want: []byte{5, 1, 4, 2, 3},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			inputCopy := make([]byte, len(tt.args.in))
+			copy(inputCopy, tt.args.in)
+
+			err := shuffleBytes(inputCopy)
+			assert.NoError(t, err)
+
+			if len(inputCopy) <= 1 {
+				assert.EqualValues(t, tt.args.in, inputCopy)
+			} else {
+				assert.NotEqualValues(t, tt.args.in, inputCopy)
+			}
+			for _, v := range inputCopy {
+				assert.Contains(t, tt.args.in, v)
+			}
+		})
+	}
 }

@@ -2,10 +2,11 @@ package main
 
 import (
 	"flag"
-	"github.com/joho/godotenv"
-	"github.com/to77e/password-generator/internal/app/command"
 	"log"
 	"os"
+
+	"github.com/joho/godotenv"
+	"github.com/to77e/password-generator/internal/app/command"
 )
 
 func main() {
@@ -17,7 +18,10 @@ func main() {
 	)
 
 	flag.Parse()
-	_ = godotenv.Load()
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("loading .env file")
+	}
 
 	cipherKey, found := os.LookupEnv("CIPHERKEY")
 	if !found {
