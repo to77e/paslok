@@ -15,11 +15,7 @@ Arguments:
 
 Example:
 ```shell
-<<<<<<< HEAD
-go run cmd/mine.go -r -s newname newcomment
-=======
-go run cmd/main.go -c name newcomment -r name
->>>>>>> 74d664f (refactor: lint)
+go run cmd/main.go -c newname newcomment -r name
 ```
 
 Please note that this application has only been tested on Linux and has not been tested on other platforms. Use on other platforms is not supported at this time.
