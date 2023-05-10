@@ -6,6 +6,10 @@ GOLANGCI_TAG:=1.51.2
 build:
 	go build -o bin/pswrd cmd/main.go
 
+.PHONY: install
+install: build
+	mv bin/pswrd $(HOME)/go/bin
+
 .PHONY: test
 test:
 	go test -v ./...
