@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/atotto/clipboard"
-	"github.com/to77e/password-generator/tools/aes"
+	"github.com/to77e/paslok/tools/aes"
 )
 
 func ReadName(name, cipherKey, filePath string) error {

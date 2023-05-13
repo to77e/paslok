@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/to77e/password-generator/tools/aes"
+	"github.com/to77e/paslok/tools/aes"
 )
 
 func ListNames(cipherKey, filePath string) error {

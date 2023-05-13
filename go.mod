@@ -1,4 +1,4 @@
-module github.com/to77e/password-generator
+module github.com/to77e/paslok
 
 go 1.20
 

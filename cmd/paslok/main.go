@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
-	"github.com/to77e/password-generator/internal/app/command"
+	"github.com/to77e/paslok/internal/app/command"
 )
 
 func main() {

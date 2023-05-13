@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/to77e/password-generator/internal/app/generator"
-	"github.com/to77e/password-generator/tools/aes"
+	"github.com/to77e/paslok/internal/app/generator"
+	"github.com/to77e/paslok/tools/aes"
 )
 
 const (
