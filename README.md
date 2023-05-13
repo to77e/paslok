@@ -1,5 +1,5 @@
 # password-generator
-This is a useful and reliable tool for generating strong, secure passwords. 
+This is a useful and reliable tool for generating strong, secure passwords and storing them. 
 
 Before using please install xclip
 ```shell
