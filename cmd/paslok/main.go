@@ -3,50 +3,41 @@ package main
 import (
 	"flag"
 	"log"
-	"os"
 
-	"github.com/joho/godotenv"
 	"github.com/to77e/paslok/internal/app/command"
+	"github.com/to77e/paslok/internal/config"
 )
 
 func main() {
 	var (
-		create    = flag.String("c", "", "create password for service name")
-		read      = flag.String("r", "", "read password by service name")
-		list      = flag.Bool("l", false, "list of service names")
-		cipherKey string
+		create = flag.String("c", "", "create password for service name")
+		read   = flag.String("r", "", "read password by service name")
+		list   = flag.Bool("l", false, "list of service names")
+		cfg    config.Config
 	)
-
 	flag.Parse()
-	err := godotenv.Load()
+
+	err := cfg.ReadConfig()
 	if err != nil {
-		log.Fatal("loading .env file")
-	}
-
-	cipherKey, found := os.LookupEnv("CIPHERKEY")
-	if !found {
-		log.Fatalf("load cipher key")
-	}
-
-	filePath, found := os.LookupEnv("FILEPATH")
-	if !found {
-		log.Fatalf("load file path")
+		log.Fatal("init configuration")
 	}
 
 	if len(*create) > 0 {
-		if err := command.CreatePassword(cipherKey, filePath, *create, flag.Arg(0)); err != nil {
+		err = command.CreatePassword(cfg.CipherKey, cfg.FilePath, *create, flag.Arg(0))
+		if err != nil {
 			log.Fatal(err)
 		}
 	}
 
 	if len(*read) > 0 {
-		if err := command.ReadName(*read, cipherKey, filePath); err != nil {
+		if err = command.ReadName(*read, cfg.CipherKey, cfg.FilePath); err != nil {
 			log.Fatal(err)
 		}
 	}
 
 	if *list {
-		if err := command.ListNames(cipherKey, filePath); err != nil {
+		err = command.ListNames(cfg.CipherKey, cfg.FilePath)
+		if err != nil {
 			log.Fatal(err)
 		}
 	}

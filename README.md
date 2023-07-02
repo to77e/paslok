@@ -1,4 +1,4 @@
-# password-generator
+# paslok
 This is a useful and reliable tool for generating strong, secure passwords and storing them. 
 
 Before using please install xclip
@@ -6,9 +6,9 @@ Before using please install xclip
 sudo apt install xclip
 ```
 
-First you need to create a ".env" file in which to declare:   
-"CIPHERKEY" - AES 256 encryption key;   
-"FILEPATH" - path to the file where the passwords will be stored.   
+First you need to create a "internal/config/config.yaml" file in which to declare:   
+cipherKey - AES 256 encryption key;   
+filePath - path to the file where the passwords will be stored.   
 
 Arguments:  
     -l - list all names and comments  

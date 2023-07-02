@@ -24,13 +24,7 @@ func ReadName(name, cipherKey, filePath string) error {
 		decryptStr string
 	)
 
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return fmt.Errorf("load user home directory: %v", err)
-	}
-	filePath = filepath.Join(homeDir, filepath.Clean(filePath))
-
-	if file, err = os.OpenFile(filePath, os.O_RDONLY, os.FileMode(perm)); err != nil {
+	if file, err = os.OpenFile(filepath.Clean(filePath), os.O_RDONLY, os.FileMode(perm)); err != nil {
 		return fmt.Errorf("failed to open file: %v\n", err)
 	}
 	defer func() {

@@ -4,33 +4,32 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/hex"
+	"fmt"
 )
 
 // Decrypt -
-func Decrypt(encryptedString, keyString string) (out string, err error) {
-	var (
-		key, enc []byte
-	)
-
+func Decrypt(encryptedString, keyString string) (string, error) {
 	if encryptedString == "" {
 		return "", nil
 	}
 
-	if key, err = hex.DecodeString(keyString); err != nil {
-		return
+	key, err := hex.DecodeString(keyString)
+	if err != nil {
+		return "", fmt.Errorf("decode key: %w", err)
 	}
-	if enc, err = hex.DecodeString(encryptedString); err != nil {
-		return
+	enc, err := hex.DecodeString(encryptedString)
+	if err != nil {
+		return "", fmt.Errorf("decode encrypted string: %w", err)
 	}
 
 	c, err := aes.NewCipher(key)
 	if err != nil {
-		return
+		return "", fmt.Errorf("new cipher: %w", err)
 	}
 
 	gcm, err := cipher.NewGCM(c)
 	if err != nil {
-		return
+		return "", fmt.Errorf("new gcm: %w", err)
 	}
 
 	nonceSize := gcm.NonceSize()
@@ -38,7 +37,7 @@ func Decrypt(encryptedString, keyString string) (out string, err error) {
 
 	res, err := gcm.Open(nil, nonce, enc, nil)
 	if err != nil {
-		return
+		return "", fmt.Errorf("open: %w", err)
 	}
 
 	return string(res), nil

@@ -18,3 +18,5 @@
 .vscode
 .idea
 .env
+.paslok
+internal/config/config.yaml
