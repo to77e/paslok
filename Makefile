@@ -1,9 +1,9 @@
 LOCAL_BIN:=$(CURDIR)/bin
 GOLANGCI_BIN:=$(LOCAL_BIN)/golangci-lint
 
-.PHONY: install
-install:
-	 go install github.com/to77e/paslok/cmd/paslok@latest
+.PHONY: build
+build:
+	 go build -o $(GOPATH)/bin/paslok cmd/paslok/main.go
 
 .PHONY: test
 test:
