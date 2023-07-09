@@ -14,15 +14,14 @@ func ListNames(cipherKey, filePath string) error {
 	const (
 		perm = 0600
 	)
-	var (
-		tmp        string
-		decryptStr string
-		values     []string
-		err        error
-		file       *os.File
-	)
 
-	if file, err = os.OpenFile(filepath.Clean(filePath), os.O_RDONLY, os.FileMode(perm)); err != nil {
+	if strings.HasPrefix(filePath, "~/") {
+		home, _ := os.UserHomeDir()
+		filePath = filepath.Join(home, filePath[2:])
+	}
+
+	file, err := os.OpenFile(filepath.Clean(filePath), os.O_RDONLY, os.FileMode(perm))
+	if err != nil {
 		return fmt.Errorf("open file: %v\n", err)
 	}
 	defer func() {
@@ -32,9 +31,11 @@ func ListNames(cipherKey, filePath string) error {
 	}()
 
 	scanner := bufio.NewScanner(file)
+	var values []string
 	for scanner.Scan() {
-		tmp = scanner.Text()
-		if decryptStr, err = aes.Decrypt(tmp, cipherKey); err != nil {
+		tmp := scanner.Text()
+		decryptStr, err := aes.Decrypt(tmp, cipherKey)
+		if err != nil {
 			return fmt.Errorf("decrypt: %w", err)
 		}
 		values = strings.Split(decryptStr, ";")

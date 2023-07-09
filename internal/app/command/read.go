@@ -15,16 +15,14 @@ func ReadName(name, cipherKey, filePath string) error {
 	const (
 		perm = 0600
 	)
-	var (
-		tmp        string
-		values     []string
-		err        error
-		file       *os.File
-		password   string
-		decryptStr string
-	)
 
-	if file, err = os.OpenFile(filepath.Clean(filePath), os.O_RDONLY, os.FileMode(perm)); err != nil {
+	if strings.HasPrefix(filePath, "~/") {
+		home, _ := os.UserHomeDir()
+		filePath = filepath.Join(home, filePath[2:])
+	}
+
+	file, err := os.OpenFile(filepath.Clean(filePath), os.O_RDONLY, os.FileMode(perm))
+	if err != nil {
 		return fmt.Errorf("failed to open file: %v\n", err)
 	}
 	defer func() {
@@ -33,9 +31,14 @@ func ReadName(name, cipherKey, filePath string) error {
 		}
 	}()
 
+	var (
+		values     []string
+		password   string
+		decryptStr string
+	)
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		tmp = scanner.Text()
+		tmp := scanner.Text()
 		if decryptStr, err = aes.Decrypt(tmp, cipherKey); err != nil {
 			return fmt.Errorf("decrypt: %w", err)
 		}

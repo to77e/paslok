@@ -6,9 +6,9 @@ Before using please install xclip
 sudo apt install xclip
 ```
 
-First you need to create a "internal/config/config.yaml" file in which to declare:   
-cipherKey - AES 256 encryption key;   
-filePath - path to the file where the passwords will be stored.   
+First you need to declare environment variables:   
+PASLOK_CIPHER_KEY - AES 256 encryption key;   
+PASLOK_FILE_PATH - path to the file where the passwords will be stored (default: ~/.paslok/.paslok).
 
 Arguments:  
     -l - list all names and comments  

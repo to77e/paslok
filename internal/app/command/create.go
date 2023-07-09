@@ -11,22 +11,19 @@ import (
 	"github.com/to77e/paslok/tools/aes"
 )
 
-const (
-	length = 18
-)
-
 func CreatePassword(cipherKey, filePath, name, comment string) error {
 	const (
-		perm = 0600
-	)
-	var (
-		err        error
-		password   string
-		encryptStr string
-		file       *os.File
+		perm   = 0600
+		length = 18
 	)
 
-	if file, err = os.OpenFile(filepath.Clean(filePath), os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.FileMode(perm)); err != nil {
+	if strings.HasPrefix(filePath, "~/") {
+		home, _ := os.UserHomeDir()
+		filePath = filepath.Join(home, filePath[2:])
+	}
+
+	file, err := os.OpenFile(filepath.Clean(filePath), os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.FileMode(perm))
+	if err != nil {
 		return fmt.Errorf("failed to open file: %v\n", err)
 	}
 	defer func() {
@@ -39,12 +36,14 @@ func CreatePassword(cipherKey, filePath, name, comment string) error {
 		return fmt.Errorf("the name should not contain \";\": %v\n", err)
 	}
 
-	if password, err = generator.CreatePassword(length); err != nil {
+	password, err := generator.CreatePassword(length)
+	if err != nil {
 		return fmt.Errorf("failed to create password: %v\n", err)
 	}
 
 	tmp := fmt.Sprintf("%s;%s;%s;%s", name, password, comment, time.Now().Format(time.RFC3339))
-	if encryptStr, err = aes.Encrypt(tmp, cipherKey); err != nil {
+	encryptStr, err := aes.Encrypt(tmp, cipherKey)
+	if err != nil {
 		return fmt.Errorf("encrypt: %w", err)
 	}
 

@@ -1,3 +1,6 @@
+include .env
+export
+
 LOCAL_BIN:=$(CURDIR)/bin
 GOLANGCI_BIN:=$(LOCAL_BIN)/golangci-lint
 

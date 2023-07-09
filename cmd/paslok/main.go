@@ -17,9 +17,9 @@ func main() {
 	)
 	flag.Parse()
 
-	err := cfg.ReadConfig()
+	err := cfg.ReadConfig(&cfg)
 	if err != nil {
-		log.Fatal("init configuration")
+		log.Fatal("init configuration: %w", err)
 	}
 
 	if len(*create) > 0 {
