@@ -30,7 +30,7 @@ func main() {
 	}
 
 	if len(*read) > 0 {
-		if err = command.ReadName(*read, cfg.CipherKey, cfg.FilePath); err != nil {
+		if err = command.ReadName(cfg.CipherKey, cfg.FilePath, *read); err != nil {
 			log.Fatal(err)
 		}
 	}

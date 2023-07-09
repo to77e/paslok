@@ -6,6 +6,11 @@ Before using please install xclip
 sudo apt install xclip
 ```
 
+# Installation
+```go
+go install github.com/to77e/paslok/cmd/paslok
+```
+
 First you need to declare environment variables:   
 PASLOK_CIPHER_KEY - AES 256 encryption key;   
 PASLOK_FILE_PATH - path to the file where the passwords will be stored (default: ~/.paslok/.paslok).
@@ -17,7 +22,7 @@ Arguments:
 
 Example:
 ```shell
-go run cmd/main.go -c newname newcomment -r name
+paslok -c newname newcomment -r name
 ```
 
 Please note that this application has only been tested on Linux and has not been tested on other platforms. Use on other platforms is not supported at this time.

@@ -17,11 +17,6 @@ func CreatePassword(cipherKey, filePath, name, comment string) error {
 		length = 18
 	)
 
-	if strings.HasPrefix(filePath, "~/") {
-		home, _ := os.UserHomeDir()
-		filePath = filepath.Join(home, filePath[2:])
-	}
-
 	file, err := os.OpenFile(filepath.Clean(filePath), os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.FileMode(perm))
 	if err != nil {
 		return fmt.Errorf("failed to open file: %v\n", err)
