@@ -9,7 +9,6 @@ import (
 	"io"
 )
 
-// Encrypt -
 func Encrypt(stringToEncrypt, keyString string) (out string, err error) {
 	var key []byte
 

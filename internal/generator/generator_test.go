@@ -17,10 +17,6 @@ func TestCreatePassword(t *testing.T) {
 		for _, v := range testCases {
 			actual, err := CreatePassword(v.length)
 			if err != nil {
-				if err == ErrTooShortLength {
-					assert.Empty(t, actual)
-					continue
-				}
 				t.Fatalf("test for checking for creating password is failed")
 			}
 			assert.NotEmpty(t, actual)

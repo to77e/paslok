@@ -7,7 +7,6 @@ import (
 	"fmt"
 )
 
-// Decrypt -
 func Decrypt(encryptedString, keyString string) (string, error) {
 	if encryptedString == "" {
 		return "", nil

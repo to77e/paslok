@@ -2,7 +2,6 @@ package generator
 
 import (
 	"crypto/rand"
-	"errors"
 	"fmt"
 	"math/big"
 	"strings"
@@ -17,20 +16,14 @@ var (
 	numberSet      = Charset("0123456789")
 )
 
-var (
-	ErrTooShortLength = errors.New("too short length")
-)
-
 const (
 	partAllChars     = 100
 	partUpperChars   = 15
 	partSpecialChars = 15
 	partNumberChars  = 15
-	minLength        = 12
 	chunkSize        = 6
 )
 
-// CreatePassword generates password with a given length
 func CreatePassword(length int) (string, error) {
 	var (
 		err         error
@@ -39,9 +32,6 @@ func CreatePassword(length int) (string, error) {
 		chosenBytes []byte
 	)
 
-	if length <= minLength {
-		return "", ErrTooShortLength
-	}
 	chosenBytes = make([]byte, 0, length)
 
 	lengthUpperChars := length * partUpperChars / partAllChars

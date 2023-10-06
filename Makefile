@@ -1,19 +1,31 @@
-include .env
+include .env.example
 export
 
 LOCAL_BIN:=$(CURDIR)/bin
 GOLANGCI_BIN:=$(LOCAL_BIN)/golangci-lint
 
+.PHONY: run
+run:
+	go run cmd/paslok/main.go
+
+.PHONY: create
+create:
+	go run cmd/paslok/main.go -c lol 123 false
+
 .PHONY: build
 build:
 	 go build -o $(GOPATH)/bin/paslok cmd/paslok/main.go
+
+.PHONY: generate
+generate:
+	go generate ./...
 
 .PHONY: test
 test:
 	go test -v ./...
 
-.PHONY: create
-create:
+.PHONY: create_read
+create_read:
 	go run cmd/paslok/main.go -c $(name) $(comment) -r $(name)
 
 .PHONY: read

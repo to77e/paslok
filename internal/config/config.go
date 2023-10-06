@@ -10,7 +10,7 @@ import (
 )
 
 type Config struct {
-	FilePath  string `env:"PASLOK_FILE_PATH" envDefault:"~/.paslok/.paslok"`
+	DBPath    string `env:"PASLOK_DB_PATH" envDefault:"./tmp/paslok.db"`
 	CipherKey string `env:"PASLOK_CIPHER_KEY"`
 }
 
@@ -19,9 +19,9 @@ func (c *Config) ReadConfig(cfg *Config) error {
 		return fmt.Errorf("parse env: %w", err)
 	}
 
-	if strings.HasPrefix(cfg.FilePath, "~/") {
+	if strings.HasPrefix(cfg.DBPath, "~/") {
 		home, _ := os.UserHomeDir()
-		cfg.FilePath = filepath.Join(home, cfg.FilePath[2:])
+		cfg.DBPath = filepath.Join(home, cfg.DBPath[2:])
 	}
 
 	return nil
