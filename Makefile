@@ -14,7 +14,9 @@ create:
 
 .PHONY: build
 build:
-	 go build -o $(GOPATH)/bin/paslok cmd/paslok/main.go
+	go build -ldflags "-X main.version=`git tag --sort=-version:refname | head -n 1`" \
+		-o $(LOCAL_BIN)/paslok cmd/paslok/main.go
+	 # go build -o $(GOPATH)/bin/paslok cmd/paslok/main.go
 
 .PHONY: generate
 generate:

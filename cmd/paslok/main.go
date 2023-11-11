@@ -12,6 +12,8 @@ import (
 	"log"
 )
 
+var version string
+
 func main() {
 	var (
 		create = flag.String("create", "", "create password by name")
@@ -19,8 +21,10 @@ func main() {
 		remove = flag.String("delete", "", "delete password by name")
 		update = flag.String("update", "", "update password by name")
 		list   = flag.Bool("list", false, "list of names")
+		ver    = flag.Bool("version", false, "show version")
 		cfg    config.Config
 	)
+
 	flag.Parse()
 
 	err := cfg.ReadConfig(&cfg)
@@ -82,5 +86,9 @@ func main() {
 			log.Fatalf("delete password: %s", err.Error())
 		}
 		fmt.Printf("password for %s deleted\n", *remove)
+	}
+
+	if *ver {
+		fmt.Printf("version: %s\n", version)
 	}
 }
