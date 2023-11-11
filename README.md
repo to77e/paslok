@@ -7,22 +7,28 @@ sudo apt install xclip
 ```
 
 # Installation
-```go
-go install github.com/to77e/paslok/cmd/paslok
+```shell
+    go install github.com/to77e/paslok/cmd/paslok
 ```
 
 First you need to declare environment variables:   
 PASLOK_CIPHER_KEY - AES 256 encryption key;   
-PASLOK_FILE_PATH - path to the file where the passwords will be stored (default: ~/.paslok/.paslok).
+PASLOK_DB_PATH - path to the database where the passwords will be stored (default: ~/.paslok/paslok.db).
 
 Arguments:  
-    -l - list all names and comments  
-    -r [name] - copy password to clipboard   
-    -c [name comment] - generate password and save it
+    
+    -create [name comment] - generate password and save it  
+    -read [name] - copy password to clipboard    
+    -update [name new_password] - update password
+    -delete [name] - delete password
+    -list - list all names and comments
+    -version - show version
+    -help - show help
+
 
 Example:
 ```shell
-paslok -c newname newcomment -r name
+  paslok -create newname newcomment -read name
 ```
 
 Please note that this application has only been tested on Linux and has not been tested on other platforms. Use on other platforms is not supported at this time.
