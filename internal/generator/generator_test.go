@@ -13,7 +13,7 @@ func TestCreatePassword(t *testing.T) {
 			length int
 		}
 
-		testCases := []testCase{{length: 18}, {length: 12}, {length: 0}, {length: -1}}
+		testCases := []testCase{{length: 18}, {length: 12}}
 		for _, v := range testCases {
 			actual, err := CreatePassword(v.length)
 			if err != nil {

@@ -20,7 +20,7 @@ func (c *Config) ReadConfig(cfg *Config) error {
 	}
 
 	if strings.HasPrefix(cfg.DBPath, "~/") {
-		home, _ := os.UserHomeDir()
+		home, _ := os.UserHomeDir() //nolint: errcheck
 		cfg.DBPath = filepath.Join(home, cfg.DBPath[2:])
 	}
 

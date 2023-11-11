@@ -2,6 +2,7 @@ package locker
 
 import (
 	"fmt"
+
 	"github.com/to77e/paslok/internal/generator"
 	"github.com/to77e/paslok/internal/models"
 )

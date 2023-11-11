@@ -3,13 +3,15 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log/slog"
+
 	"github.com/atotto/clipboard"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/to77e/paslok/internal/config"
 	"github.com/to77e/paslok/internal/database"
+	"github.com/to77e/paslok/internal/models"
 	"github.com/to77e/paslok/internal/service/cryptor"
 	"github.com/to77e/paslok/internal/service/locker"
-	"log"
 )
 
 var version string
@@ -29,44 +31,48 @@ func main() {
 
 	err := cfg.ReadConfig(&cfg)
 	if err != nil {
-		log.Fatal("init configuration: %w", err)
+		slog.With("error", err).Error("init configuration")
+		return
 	}
 
 	db, err := database.New(cfg.DBPath)
 	if err != nil {
-		log.Fatalf("connect to database: %s", err.Error())
+		slog.With("error", err).Error("connect to database")
+		return
 	}
-	defer func() {
-		if err = db.Close(); err != nil {
-			panic(err)
-		}
-	}()
+	defer db.Close() //nolint:errcheck
 
 	lockerService := locker.New(db, cryptor.New(cfg.CipherKey))
 
 	if len(*create) > 0 {
 		err = lockerService.Create(*create, flag.Arg(0))
 		if err != nil {
-			log.Fatalf("create password: %s", err.Error())
+			slog.With("error", err).Error("create password")
+			return
 		}
 		fmt.Printf("password for %s created\n", *create)
 	}
 
 	if len(*read) > 0 {
-		password, err := lockerService.Read(*read)
+		var password string
+		password, err = lockerService.Read(*read)
 		if err != nil {
-			log.Fatalf("read password: %s", err.Error())
+			slog.With("error", err).Error("read password")
+			return
 		}
 
 		if err = clipboard.WriteAll(password); err != nil {
-			log.Fatalf("faild to clipboard password: %v", err)
+			slog.With("error", err).Error("clipboard password")
+			return
 		}
 	}
 
 	if *list {
-		resources, err := lockerService.List()
+		var resources []models.Resource
+		resources, err = lockerService.List()
 		if err != nil {
-			log.Fatalf("list of names: %s", err.Error())
+			slog.With("error", err).Error("list of names")
+			return
 		}
 
 		for _, resource := range resources {
@@ -76,14 +82,16 @@ func main() {
 
 	if len(*update) > 0 {
 		if err = lockerService.Update(*update, flag.Arg(0), flag.Arg(1)); err != nil {
-			log.Fatalf("update password: %s", err.Error())
+			slog.With("error", err).Error("update password")
+			return
 		}
 		fmt.Printf("password for %s updated\n", *update)
 	}
 
 	if len(*remove) > 0 {
 		if err = lockerService.Delete(*remove); err != nil {
-			log.Fatalf("delete password: %s", err.Error())
+			slog.With("error", err).Error("delete password")
+			return
 		}
 		fmt.Printf("password for %s deleted\n", *remove)
 	}

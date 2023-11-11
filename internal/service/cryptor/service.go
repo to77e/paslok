@@ -2,6 +2,7 @@ package cryptor
 
 import (
 	"fmt"
+
 	"github.com/to77e/paslok/tools/aes"
 )
 

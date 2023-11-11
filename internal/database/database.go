@@ -4,8 +4,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/to77e/paslok/internal/models"
 	"sync"
+
+	"github.com/to77e/paslok/internal/models"
 )
 
 type Database struct {
@@ -104,7 +105,7 @@ func (d *Database) List() ([]models.Resource, error) {
 	if err != nil {
 		return nil, fmt.Errorf("exec select: %w", err)
 	}
-	defer rows.Close()
+	defer rows.Close() //nolint: errcheck
 
 	var resources []models.Resource
 	for rows.Next() {
