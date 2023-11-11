@@ -10,7 +10,7 @@ import (
 )
 
 type Config struct {
-	DBPath    string `env:"PASLOK_DB_PATH" envDefault:"./tmp/paslok.db"`
+	DBPath    string `env:"PASLOK_DB_PATH" envDefault:"~/.paslok/paslok.db"`
 	CipherKey string `env:"PASLOK_CIPHER_KEY"`
 }
 
