@@ -32,3 +32,13 @@ endif
 .PHONY: lint
 lint: install-lint
 	$(GOLANGCI_BIN) run --config=.golangci.yaml ./... -v
+
+
+
+.PHONY: local-up
+local-up:
+	docker-compose -f docker-compose.yaml up -d
+
+.PHONY: local-down
+local-down:
+	docker-compose -f docker-compose.yaml down -v

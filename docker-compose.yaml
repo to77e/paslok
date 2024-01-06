@@ -1,0 +1,19 @@
+version: '3.9'
+
+services:
+  paslok:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: paslok
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - /run/user/1000/.mutter-Xwaylandauth.A152G2:/root/.Xauthority
+    environment:
+      - DISPLAY=${DISPLAY}
+      - XAUTHORITY=/root/.Xauthority
+    command: /bin/sh
+    stdin_open: true
+    env_file:
+      - .env.example
+    restart: on-failure

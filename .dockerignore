@@ -1,0 +1,9 @@
+/bin
+/tmp
+.DS_Store
+.idea
+.env
+README.md
+Makefile
+Dockerfile
+docker-compose.yaml
