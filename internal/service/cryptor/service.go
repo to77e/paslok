@@ -3,7 +3,7 @@ package cryptor
 import (
 	"fmt"
 
-	"github.com/to77e/paslok/tools/aes"
+	"github.com/to77e/paslok/internal/aes"
 )
 
 type Service struct {

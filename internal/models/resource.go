@@ -1,6 +1,9 @@
 package models
 
 type Resource struct {
-	Name    string
-	Comment string
+	Id        int
+	Service   string
+	Username  string
+	CreatedAt string
+	Comment   string
 }

@@ -17,24 +17,25 @@ type Database struct {
 func New(path string) (*Database, error) {
 	const (
 		query = `
-			CREATE TABLE IF NOT EXISTS paslok (
-				id         INTEGER PRIMARY KEY AUTOINCREMENT,
-				name       TEXT     NOT NULL,
-				password   TEXT     NOT NULL,
-				comment    TEXT,
-				created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-				deleted_at DATETIME);`
+			create table if not exists paslok
+			(
+				id int primary key autoincrement,
+				username text not null,
+				password text not null,
+				comment text,
+				created_at datetime default current_timestamp not null,
+				deleted_at datetime,
+				service text default '' not null
+			);`
 	)
 	db, err := sql.Open("sqlite3", path)
 	if err != nil {
 		return nil, fmt.Errorf("connect to database: %w", err)
 	}
-
 	_, err = db.Exec(query)
 	if err != nil {
-		return nil, fmt.Errorf("exec create: %w", err)
+		return nil, fmt.Errorf("exec: %w", err)
 	}
-
 	return &Database{db: db}, nil
 }
 
@@ -45,121 +46,95 @@ func (d *Database) Close() error {
 	return nil
 }
 
-func (d *Database) Create(name, password, comment string) error {
+func (d *Database) Create(req *models.CreatePasswordRequest) error {
 	const (
 		queryInsert = `
-			INSERT INTO paslok (name, password, comment)
-			VALUES (?, ?, ?);`
-
-		queryCheck = `
-			SELECT COUNT(*) FROM paslok WHERE name = ? AND deleted_at IS NULL;`
+			insert into paslok (username, password, comment, service)
+			values ($1, $2, $3, $4);`
 	)
 	d.Lock()
 	defer d.Unlock()
-
-	var count int
-	err := d.db.QueryRow(queryCheck, name).Scan(&count)
+	_, err := d.db.Exec(queryInsert, req.Username, req.Password, req.Comment, req.Service)
 	if err != nil {
-		return fmt.Errorf("exec select: %w", err)
-	}
-	if count > 0 {
-		return models.ErrorAlreadyExistsName
-	}
-
-	_, err = d.db.Exec(queryInsert, name, password, comment)
-	if err != nil {
-		return fmt.Errorf("exec insert: %w", err)
+		return fmt.Errorf("exec: %w", err)
 	}
 	return nil
 }
 
-func (d *Database) Read(name string) (string, error) {
+func (d *Database) Read(req *models.ReadPasswordRequest) (string, error) {
 	const (
 		query = `
-			SELECT password FROM paslok
-			WHERE name = ? AND deleted_at IS NULL;`
+			select 
+				password 
+			from paslok
+			where deleted_at is null
+				and ($1 = 0 or id = $1)
+				and ($2 = '' or service = $2);`
 	)
 	d.Lock()
 	defer d.Unlock()
 	var password string
-	err := d.db.QueryRow(query, name).Scan(&password)
-	if err != nil {
+	if err := d.db.QueryRow(query, req.Id, req.Service).Scan(&password); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return "", models.ErrorNotFoundName
 		}
-		return "", fmt.Errorf("exec select: %w", err)
+		return "", fmt.Errorf("exec: %w", err)
 	}
 	return password, nil
 }
 
-func (d *Database) List() ([]models.Resource, error) {
+func (d *Database) List(req *models.ListPasswordsRequest) ([]models.Resource, error) {
 	const (
 		query = `
-			SELECT name, comment FROM paslok
-			WHERE deleted_at IS NULL
-			ORDER BY id;`
+			select
+				id,
+				service,
+				username,
+				comment,
+				date(created_at) as created_at
+			from paslok
+			where deleted_at is null
+				and ($1 = '' or lower(service) like format('%%%s%%', $1))
+			order by service, id;`
 	)
 	d.Lock()
 	defer d.Unlock()
-	rows, err := d.db.Query(query)
+	rows, err := d.db.Query(query, req.SearchTerm) //nolint:rowserrcheck
 	if err != nil {
-		return nil, fmt.Errorf("exec select: %w", err)
+		return nil, fmt.Errorf("exec: %w", err)
 	}
 	defer rows.Close() //nolint: errcheck
-
 	var resources []models.Resource
 	for rows.Next() {
-		var name, comment string
-		if err := rows.Scan(&name, &comment); err != nil {
-			return nil, fmt.Errorf("scan select: %w", err)
+		var resource models.Resource
+		if err = rows.Scan(
+			&resource.Id,
+			&resource.Service,
+			&resource.Username,
+			&resource.Comment,
+			&resource.CreatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("scan: %w", err)
 		}
-		resources = append(resources, models.Resource{
-			Name:    name,
-			Comment: comment,
-		})
+		resources = append(resources, resource)
 	}
 	return resources, nil
 }
 
-func (d *Database) Update(name, password, comment string) error {
-	const (
-		queryUpdate = `
-			UPDATE paslok SET deleted_at = CURRENT_TIMESTAMP
-			WHERE name = ? AND deleted_at IS NULL;
-			INSERT INTO paslok (name, password, comment) VALUES (?, ?, ?);`
-
-		queryCheck = `
-			SELECT COUNT(*) FROM paslok WHERE name = ? AND deleted_at IS NULL;`
-	)
-	d.Lock()
-	defer d.Unlock()
-
-	var count int
-	err := d.db.QueryRow(queryCheck, name).Scan(&count)
-	if err != nil {
-		return fmt.Errorf("exec select: %w", err)
-	}
-	if count == 0 {
-		return models.ErrorNotFoundName
-	}
-	_, err = d.db.Exec(queryUpdate, name, name, password, comment)
-	if err != nil {
-		return fmt.Errorf("exec update: %w", err)
-	}
-	return nil
-}
-
-func (d *Database) Delete(name string) error {
+func (d *Database) Delete(req *models.DeletePasswordRequest) error {
 	const (
 		query = `
-			UPDATE paslok SET deleted_at = CURRENT_TIMESTAMP
-			WHERE name = ? AND deleted_at IS NULL;`
+			update paslok 
+			set deleted_at = current_timestamp
+			where deleted_at is null
+				and ($1 = 0 or id = $1)
+				and ($2 = '' or service = $2);`
 	)
 	d.Lock()
 	defer d.Unlock()
-	_, err := d.db.Exec(query, name)
+	_, err := d.db.Exec(query, req.Id, req.Service)
 	if err != nil {
-		return fmt.Errorf("exec delete: %w", err)
+		return fmt.Errorf("exec: %w", err)
 	}
 	return nil
 }

@@ -6,12 +6,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/caarlos0/env/v9"
+	"github.com/caarlos0/env/v11"
 )
 
 type Config struct {
 	DBPath    string `env:"PASLOK_DB_PATH" envDefault:"~/.paslok/paslok.db"`
-	CipherKey string `env:"PASLOK_CIPHER_KEY"`
+	CipherKey string `env:"PASLOK_CIPHER_KEY,required"`
 }
 
 func (c *Config) ReadConfig(cfg *Config) error {

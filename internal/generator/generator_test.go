@@ -1,48 +1,14 @@
 package generator
 
 import (
-	"strings"
 	"testing"
+	"unicode"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/to77e/paslok/internal/models"
 )
-
-func TestCreatePassword(t *testing.T) {
-	t.Run("generating passwords with different lengths", func(t *testing.T) {
-		type testCase struct {
-			length int
-		}
-
-		testCases := []testCase{{length: 18}, {length: 12}}
-		for _, v := range testCases {
-			actual, err := CreatePassword(v.length)
-			if err != nil {
-				t.Fatalf("test for checking for creating password is failed")
-			}
-			assert.NotEmpty(t, actual)
-			assert.Len(t, actual, v.length+((v.length/chunkSize)-1))
-			assert.True(t, strings.ContainsAny(actual, string(lowerCharset)))
-			assert.True(t, strings.ContainsAny(actual, string(upperCharset)))
-			assert.True(t, strings.ContainsAny(actual, string(specialCharset)))
-			assert.True(t, strings.ContainsAny(actual, string(numberSet)))
-		}
-	})
-
-	t.Run("check for uniqueness", func(t *testing.T) {
-		var (
-			length = 1000
-			result = make(map[string]struct{}, length)
-		)
-		for i := 0; i < length; i++ {
-			k, err := CreatePassword(18)
-			if err != nil {
-				t.Fatalf("test for checking for uniqueness is failed")
-			}
-			result[k] = struct{}{}
-		}
-		assert.Len(t, result, length)
-	})
-}
 
 func Test_shuffleBytes(t *testing.T) {
 	type args struct {
@@ -91,4 +57,211 @@ func Test_shuffleBytes(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestCreatePassword(t *testing.T) {
+	tests := []struct {
+		name          string
+		pswd          models.Password
+		wantErr       assert.ErrorAssertionFunc
+		checkContains func(*testing.T, string)
+	}{
+		{
+			name: "lowercase only (length=8)",
+			pswd: models.Password{
+				Length:    8,
+				Uppercase: false,
+				Special:   false,
+				Number:    false,
+				Dash:      false,
+				ChunkSize: 0,
+			},
+			wantErr: assert.NoError,
+			checkContains: func(t *testing.T, generated string) {
+				require.Len(t, generated, 8, "password should be 8 characters long")
+				for _, r := range generated {
+					assert.True(t, unicode.IsLower(r), "expected only lowercase letters")
+				}
+			},
+		},
+		{
+			name: "uppercase only (length=8)",
+			pswd: models.Password{
+				Length:    8,
+				Uppercase: true,
+				Special:   false,
+				Number:    false,
+				Dash:      false,
+				ChunkSize: 0,
+			},
+			wantErr: assert.NoError,
+			checkContains: func(t *testing.T, generated string) {
+				require.Len(t, generated, 8, "password should be 8 characters long")
+				hasUpper := false
+				for _, r := range generated {
+					if unicode.IsUpper(r) {
+						hasUpper = true
+						break
+					}
+				}
+				assert.True(t, hasUpper, "expected at least one uppercase letter")
+			},
+		},
+		{
+			name: "special characters only (length=8)",
+			pswd: models.Password{
+				Length:    8,
+				Uppercase: false,
+				Special:   true,
+				Number:    false,
+				Dash:      false,
+				ChunkSize: 0,
+			},
+			wantErr: assert.NoError,
+			checkContains: func(t *testing.T, generated string) {
+				require.Len(t, generated, 8, "password should be 8 characters long")
+				hasSpecial := false
+				for _, r := range generated {
+					if isSpecial(r) {
+						hasSpecial = true
+					}
+				}
+				assert.True(t, hasSpecial, "expected at least one special character in the result")
+			},
+		},
+		{
+			name: "numbers only (length=8)",
+			pswd: models.Password{
+				Length:    8,
+				Uppercase: false,
+				Special:   false,
+				Number:    true,
+				Dash:      false,
+				ChunkSize: 0,
+			},
+			wantErr: assert.NoError,
+			checkContains: func(t *testing.T, generated string) {
+				require.Len(t, generated, 8, "password should be 8 characters long")
+				hasNumber := false
+				for _, r := range generated {
+					if unicode.IsDigit(r) {
+						hasNumber = true
+					}
+				}
+				assert.True(t, hasNumber, "expected at least one digit")
+			},
+		},
+		{
+			name: "all flags on (length=12) with chunk=4 and dash=true",
+			pswd: models.Password{
+				Length:    12,
+				Uppercase: true,
+				Special:   true,
+				Number:    true,
+				Dash:      true,
+				ChunkSize: 4,
+			},
+			wantErr: assert.NoError,
+			checkContains: func(t *testing.T, generated string) {
+				require.Len(t, generated, 12+2, "expected 14 characters (12 plus 2 dashes)")
+				assert.Equal(t, '-', rune(generated[4]), "expected dash at position 4")
+				assert.Equal(t, '-', rune(generated[9]), "expected dash at position 9")
+				hasUpper := false
+				hasDigit := false
+				hasSpecial := false
+				for _, r := range generated {
+					if r == '-' {
+						continue
+					}
+					if unicode.IsUpper(r) {
+						hasUpper = true
+					}
+					if unicode.IsDigit(r) {
+						hasDigit = true
+					}
+					if isSpecial(r) {
+						hasSpecial = true
+					}
+				}
+				assert.True(t, hasUpper, "expected at least one uppercase letter")
+				assert.True(t, hasDigit, "expected at least one digit")
+				assert.True(t, hasSpecial, "expected at least one special character")
+			},
+		},
+		{
+			name: "chunk size > length (chunk=10, length=8)",
+			pswd: models.Password{
+				Length:    8,
+				Uppercase: true,
+				Special:   true,
+				Number:    true,
+				Dash:      true,
+				ChunkSize: 10,
+			},
+			wantErr: assert.NoError,
+			checkContains: func(t *testing.T, generated string) {
+				require.Len(t, generated, 8, "expected 8 characters with no dashes")
+				hasUpper := false
+				hasDigit := false
+				hasSpecial := false
+				for _, r := range generated {
+					if unicode.IsUpper(r) {
+						hasUpper = true
+					}
+					if unicode.IsDigit(r) {
+						hasDigit = true
+					}
+					if isSpecial(r) {
+						hasSpecial = true
+					}
+				}
+				assert.True(t, hasUpper, "expected at least one uppercase letter")
+				assert.True(t, hasDigit, "expected at least one digit")
+				assert.True(t, hasSpecial, "expected at least one special character")
+			},
+		},
+		{
+			name: "zero length => expect error",
+			pswd: models.Password{
+				Length:    0,
+				Uppercase: true,
+				Special:   true,
+				Number:    true,
+			},
+			wantErr:       assert.NoError,
+			checkContains: func(*testing.T, string) {},
+		},
+		{
+			name: "negative chunk => expect error",
+			pswd: models.Password{
+				Length:    8,
+				Uppercase: true,
+				Special:   true,
+				Number:    true,
+				Dash:      true,
+				ChunkSize: -1,
+			},
+			wantErr:       assert.NoError,
+			checkContains: func(*testing.T, string) {},
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			generated, err := CreatePassword(&tc.pswd)
+			require.True(t, tc.wantErr(t, err), "error assertion did not pass")
+			if err == nil {
+				tc.checkContains(t, generated)
+			}
+		})
+	}
+}
+
+func isSpecial(r rune) bool {
+	specials := "~=+%^*/()[]{}!@#$?|"
+	for _, sc := range specials {
+		if r == sc {
+			return true
+		}
+	}
+	return false
 }

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"math/big"
 	"strings"
+
+	"github.com/to77e/paslok/internal/models"
 )
 
 type Charset []byte
@@ -17,65 +19,76 @@ var (
 )
 
 const (
-	partAllChars     = 100
-	partUpperChars   = 15
-	partSpecialChars = 15
-	partNumberChars  = 15
-	chunkSize        = 6
+	percentTotal   = 100
+	percentUpper   = 15
+	percentSpecial = 15
+	percentNumber  = 15
 )
 
-func CreatePassword(length int) (string, error) {
+func CreatePassword(pswd *models.Password) (string, error) {
 	var (
-		err         error
-		b           []byte
-		password    string
-		chosenBytes []byte
+		lengthUpperChars   int
+		lengthSpecialChars int
+		lengthNumberChars  int
+		lengthLowerCharset int
+		bytes              []byte
+		err                error
 	)
+	chosenBytes := make([]byte, 0, pswd.Length)
 
-	chosenBytes = make([]byte, 0, length)
+	if pswd.Uppercase {
+		lengthUpperChars = pswd.Length * percentUpper / percentTotal
+		bytes, err = chooseCharsFromCharset(lengthUpperChars, upperCharset)
+		if err != nil {
+			return "", fmt.Errorf("choose upper charset: %w", err)
+		}
+		chosenBytes = append(chosenBytes, bytes...)
+	}
 
-	lengthUpperChars := length * partUpperChars / partAllChars
-	lengthSpecialChars := length * partSpecialChars / partAllChars
-	lengthNumberChars := length * partNumberChars / partAllChars
-	lengthLowerCharset := length - lengthUpperChars - lengthSpecialChars - lengthNumberChars
+	if pswd.Special {
+		lengthSpecialChars = pswd.Length * percentSpecial / percentTotal
+		bytes, err = chooseCharsFromCharset(lengthSpecialChars, specialCharset)
+		if err != nil {
+			return "", fmt.Errorf("choose special charset: %w", err)
+		}
+		chosenBytes = append(chosenBytes, bytes...)
+	}
 
-	if b, err = chooseCharsFromCharset(lengthLowerCharset, lowerCharset); err != nil {
-		return "", err
+	if pswd.Number {
+		lengthNumberChars = pswd.Length * percentNumber / percentTotal
+		bytes, err = chooseCharsFromCharset(lengthNumberChars, numberSet)
+		if err != nil {
+			return "", fmt.Errorf("choose number charset: %w", err)
+		}
+		chosenBytes = append(chosenBytes, bytes...)
 	}
-	chosenBytes = append(chosenBytes, b...)
-	if b, err = chooseCharsFromCharset(lengthUpperChars, upperCharset); err != nil {
-		return "", err
+
+	lengthLowerCharset = pswd.Length - lengthUpperChars - lengthSpecialChars - lengthNumberChars
+	bytes, err = chooseCharsFromCharset(lengthLowerCharset, lowerCharset)
+	if err != nil {
+		return "", fmt.Errorf("choose lower charset: %w", err)
 	}
-	chosenBytes = append(chosenBytes, b...)
-	if b, err = chooseCharsFromCharset(lengthSpecialChars, specialCharset); err != nil {
-		return "", err
-	}
-	chosenBytes = append(chosenBytes, b...)
-	if b, err = chooseCharsFromCharset(lengthNumberChars, numberSet); err != nil {
-		return "", err
-	}
-	chosenBytes = append(chosenBytes, b...)
+	chosenBytes = append(chosenBytes, bytes...)
+
 	err = shuffleBytes(chosenBytes)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("shuffle bytes: %w", err)
 	}
 
-	if password, err = chunkString(chosenBytes, length, chunkSize); err != nil {
-		return "", err
+	password, err := chunkString(chosenBytes, pswd)
+	if err != nil {
+		return "", fmt.Errorf("chunk string: %w", err)
 	}
 
 	return password, nil
 }
 
 func chooseCharsFromCharset(length int, chars Charset) ([]byte, error) {
-	var (
-		b   byte
-		res = make([]byte, 0, length)
-		err error
-	)
+	var res []byte
 	for i := 0; i < length; i++ {
-		if b, err = randomlyChooseChar(chars); err != nil {
-			return nil, err
+		b, err := randomlyChooseChar(chars)
+		if err != nil {
+			return nil, fmt.Errorf("choose char from charset: %w", err)
 		}
 		res = append(res, b)
 	}
@@ -102,23 +115,18 @@ func shuffleBytes(in []byte) error {
 	return nil
 }
 
-func chunkString(in []byte, length, chunkSize int) (string, error) {
-	var (
-		err error
-		res strings.Builder
-	)
-
-	if length <= chunkSize {
+func chunkString(in []byte, pswd *models.Password) (string, error) {
+	var res strings.Builder
+	if pswd.Length <= pswd.ChunkSize {
 		return string(in), nil
 	}
-
 	for i, v := range in {
-		if i > 0 && (i)%chunkSize == 0 {
-			if err = res.WriteByte('-'); err != nil {
+		if pswd.Dash && (i > 0 && (i)%pswd.ChunkSize == 0) {
+			if err := res.WriteByte('-'); err != nil {
 				return "", fmt.Errorf("write \"-\": %w", err)
 			}
 		}
-		if err = res.WriteByte(v); err != nil {
+		if err := res.WriteByte(v); err != nil {
 			return "", fmt.Errorf("write byte: %w", err)
 		}
 	}
