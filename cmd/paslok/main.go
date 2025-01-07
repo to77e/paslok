@@ -35,7 +35,7 @@ func main() { //nolint:funlen
 			"Comment to add to the password entry (applicable with -create)")
 		flagUsername = flag.String("username", "",
 			"Username to add to the password entry (applicable with -create)")
-		flagLength = flag.Int("length", 18,
+		flagLength = flag.Int("length", models.DefaultLength,
 			"Length of the generated password (applicable with -create)")
 		flagUppercase = flag.Bool("uppercase", true,
 			"Include uppercase characters in the generated password (applicable with -create)")

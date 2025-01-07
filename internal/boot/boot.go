@@ -36,5 +36,4 @@ func Initialize() (*App, error) {
 		Database:      db,
 		LockerService: lockerService,
 	}, nil
-
 }
